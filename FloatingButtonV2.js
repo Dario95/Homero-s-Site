@@ -2,15 +2,18 @@ const fabElement = document.getElementById("floating-snap-btn-wrapper");
 let oldPositionX, oldPositionY;
 let isDragging = false;
 let customClickHandler = null;
+let offsetX = 0;
+let offsetY = 0;
 
 // Movimiento del botón
 const move = (e) => {
   if (!fabElement.classList.contains("fab-active")) {
     isDragging = true;
-    const x = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-    const y = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-    fabElement.style.top = y + "px";
-    fabElement.style.left = x + "px";
+    const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+
+    fabElement.style.top = (clientY - offsetY) + "px";
+    fabElement.style.left = (clientX - offsetX) + "px";
     fabElement.style.right = "";
     fabElement.classList.remove("left", "right");
   }
@@ -21,6 +24,14 @@ const mouseDown = (e) => {
   oldPositionY = fabElement.style.top;
   oldPositionX = fabElement.style.left;
   isDragging = false;
+
+  const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+  const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+  const rect = fabElement.getBoundingClientRect();
+
+  // Calculamos el offset entre el cursor y la esquina superior izquierda del botón
+  offsetX = clientX - rect.left;
+  offsetY = clientY - rect.top;
 
   const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
   window.addEventListener(moveEvent, move);
@@ -48,18 +59,15 @@ const snapToSide = (e) => {
 
   const edgePadding = 0;
 
-  // Limitar posición vertical dentro de pantalla
-  let newTop = Math.min(Math.max(currY, edgePadding), windowHeight - rect.height - edgePadding);
+  let newTop = Math.min(Math.max(currY - offsetY, edgePadding), windowHeight - rect.height - edgePadding);
   fabElement.style.top = newTop + "px";
 
   if (currX < windowWidth / 2) {
-    // Izquierda
     fabElement.style.left = "0";
     fabElement.style.right = "";
     fabElement.classList.remove("right");
     fabElement.classList.add("left");
   } else {
-    // Derecha
     fabElement.style.left = "";
     fabElement.style.right = "0";
     fabElement.classList.remove("left");
@@ -68,7 +76,7 @@ const snapToSide = (e) => {
 };
 
 // Click personalizado
-fabElement.addEventListener("click", () => {
+fabElement.addEventListener("click", function() {
   if (!isDragging && typeof customClickHandler === "function") {
     customClickHandler();
   }
