@@ -1,0 +1,57 @@
+/* Por defecto, pegado a la izquierda */
+#floating-snap-btn-wrapper {
+  position: fixed;
+  bottom: 30px;
+  left: 0;
+  z-index: 1000;
+  width: 30px;
+  height: 120px;
+  background-color: #FF4081;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 0 5px 5px 0; /* redondeado a la derecha */
+}
+
+/* Si está pegado a la derecha */
+#floating-snap-btn-wrapper.right {
+  left: auto;
+  right: 0;
+  border-radius: 5px 0 0 5px; /* redondeado a la izquierda */
+}
+
+.fab-btn {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  writing-mode: vertical-rl; /* Hace que el texto sea vertical */
+  text-align: center; /* Centra el texto */
+  user-select: none;
+  font-family: monospace;
+}
+
+#floating-snap-btn-wrapper.left .fab-btn {
+  transform: rotate(0deg);
+}
+
+#floating-snap-btn-wrapper.right .fab-btn {
+  transform: rotate(-180deg);
+}
+
+.fab-text {
+  white-space: nowrap;
+}
+
+.fab-icon {
+  font-size: 18px !important;
+  margin-bottom:5px;
+}
