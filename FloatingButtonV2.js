@@ -93,11 +93,16 @@ function setCustomClickListener(callback) {
   customClickHandler = callback;
 }
 
-// FloatingButtonV2.js
-document.addEventListener('DOMContentLoaded', function () {
+(function waitForFabAndInit() {
     const fabElement = document.getElementById("floating-snap-btn-wrapper");
-    if (!fabElement) return;
   
+    if (!fabElement) {
+      // Esperar y reintentar si el elemento aún no está presente
+      setTimeout(waitForFabAndInit, 100);
+      return;
+    }
+  
+    // Posicionar el botón
     fabElement.classList.add("right");
   
     const windowHeight = window.innerHeight;
@@ -108,14 +113,15 @@ document.addEventListener('DOMContentLoaded', function () {
     fabElement.style.left = "";
     fabElement.style.right = "0";
   
+    // Acción personalizada al hacer clic
     setCustomClickListener(function () {
       console.log('Encuesta');
       if (typeof Userback !== 'undefined') {
         Userback.refresh();
-        Userback.openSurvey('{{survey_simulation}}');
+        Userback.openSurvey('{{survey_simulation}}'); // <-- Esto puede venir de una variable de GTM también
       } else {
         console.error("Userback no está cargado.");
       }
     });
-  });
+  })();
   
