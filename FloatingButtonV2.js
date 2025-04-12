@@ -93,35 +93,38 @@ function setCustomClickListener(callback) {
   customClickHandler = callback;
 }
 
-(function waitForFabAndInit() {
-    const fabElement = document.getElementById("floating-snap-btn-wrapper");
+
+
+// En FloatingButtonV2.js
+window.initFloatingButton = function(surveyId) {
+    function waitForFabAndInit() {
+      const fabElement = document.getElementById("floating-snap-btn-wrapper");
   
-    if (!fabElement) {
-      // Esperar y reintentar si el elemento aún no está presente
-      setTimeout(waitForFabAndInit, 100);
-      return;
+      if (!fabElement) {
+        setTimeout(waitForFabAndInit, 100);
+        return;
+      }
+  
+      fabElement.classList.add("right");
+  
+      const windowHeight = window.innerHeight;
+      const elementHeight = fabElement.offsetHeight;
+      const centeredTop = (windowHeight - elementHeight) / 2;
+  
+      fabElement.style.top = centeredTop + "px";
+      fabElement.style.left = "";
+      fabElement.style.right = "0";
+  
+      setCustomClickListener(function () {
+        console.log('Encuesta');
+        if (typeof Userback !== 'undefined') {
+          Userback.refresh();
+          Userback.openSurvey(surveyId); // ← Aquí usamos el ID dinámico
+        } else {
+          console.error("Userback no está cargado.");
+        }
+      });
     }
   
-    // Posicionar el botón
-    fabElement.classList.add("right");
-  
-    const windowHeight = window.innerHeight;
-    const elementHeight = fabElement.offsetHeight;
-    const centeredTop = (windowHeight - elementHeight) / 2;
-  
-    fabElement.style.top = centeredTop + "px";
-    fabElement.style.left = "";
-    fabElement.style.right = "0";
-  
-    // Acción personalizada al hacer clic
-    setCustomClickListener(function () {
-      console.log('Encuesta');
-      if (typeof Userback !== 'undefined') {
-        Userback.refresh();
-        Userback.openSurvey('{{survey_simulation}}'); // <-- Esto puede venir de una variable de GTM también
-      } else {
-        console.error("Userback no está cargado.");
-      }
-    });
-  })();
-  
+    waitForFabAndInit();
+  };
