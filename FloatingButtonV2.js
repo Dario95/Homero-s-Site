@@ -92,3 +92,30 @@ fabElement.addEventListener("touchend", mouseUp);
 function setCustomClickListener(callback) {
   customClickHandler = callback;
 }
+
+// FloatingButtonV2.js
+document.addEventListener('DOMContentLoaded', function () {
+    const fabElement = document.getElementById("floating-snap-btn-wrapper");
+    if (!fabElement) return;
+  
+    fabElement.classList.add("right");
+  
+    const windowHeight = window.innerHeight;
+    const elementHeight = fabElement.offsetHeight;
+    const centeredTop = (windowHeight - elementHeight) / 2;
+  
+    fabElement.style.top = centeredTop + "px";
+    fabElement.style.left = "";
+    fabElement.style.right = "0";
+  
+    setCustomClickListener(function () {
+      console.log('Encuesta');
+      if (typeof Userback !== 'undefined') {
+        Userback.refresh();
+        Userback.openSurvey('{{survey_simulation}}');
+      } else {
+        console.error("Userback no está cargado.");
+      }
+    });
+  });
+  
