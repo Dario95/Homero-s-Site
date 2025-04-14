@@ -47,25 +47,6 @@ class FloatingButton {
       fabWrapper.appendChild(fabBtn);
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
-  
-      // Agregar el estilo necesario (si no se usa el archivo CSS directamente)
-      const style = document.createElement('style');
-      style.innerHTML = `
-        #floating-snap-btn-wrapper .fab-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background-color: #007bff;
-          color: white;
-          padding: 10px 20px;
-          border-radius: 50px;
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        }
-        #floating-snap-btn-wrapper .fab-icon {
-          margin-right: 10px;
-        }
-      `;
-      document.head.appendChild(style);
     }
   
     mouseDown(e, fabElement) {
