@@ -1,4 +1,4 @@
-//Version 2.1
+//Version 2.2
 // FloatingButtonV2.js
 (function () {
     let oldPositionX, oldPositionY;
@@ -111,7 +111,10 @@
         // Si se asignó un evento personalizado, ejecutar al hacer clic
         fabElement.addEventListener("click", function () {
           if (!isDragging && typeof customClickHandler === "function") {
+            console.log('El botón fue clickeado y la función personalizada se ejecutó.');
             customClickHandler();
+          } else {
+            console.log('Se detectó un intento de clic, pero el botón estaba siendo movido.');
           }
         });
       }
