@@ -1,4 +1,4 @@
-// Version 2.6 - FloatingButton.js
+// Version 2.6.1 - FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
@@ -86,6 +86,7 @@ class FloatingButton {
   
       fabElement.style.left = clientX - this.offsetX + "px";
       fabElement.style.top = clientY - this.offsetY + "px";
+      fabElement.style.right = "auto"; // limpia right temporal
   
       this.hasMoved = true;
     }
@@ -105,16 +106,17 @@ class FloatingButton {
       let newTop = Math.min(Math.max(fabElement.offsetTop, edgePadding), windowHeight - rect.height - edgePadding);
       fabElement.style.top = newTop + "px";
   
-      const isLeft = fabElement.offsetLeft < windowWidth / 2;
+      const centerX = rect.left + rect.width / 2;
+      const isLeft = centerX < windowWidth / 2;
   
       if (isLeft) {
-        fabElement.style.left = "0";
-        fabElement.style.right = "";
-        fabBtn.style.transform = 'rotate(180deg)';
-      } else {
-        fabElement.style.left = "";
-        fabElement.style.right = "0";
+        fabElement.style.setProperty('left', '0');
+        fabElement.style.removeProperty('right');
         fabBtn.style.transform = 'rotate(0deg)';
+      } else {
+        fabElement.style.setProperty('right', '0');
+        fabElement.style.removeProperty('left');
+        fabBtn.style.transform = 'rotate(180deg)';
       }
     }
   }
