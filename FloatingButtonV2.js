@@ -1,10 +1,11 @@
-//Version 2.1.0
+//Version 2.4
 // FloatingButtonV2.js
+// Archivo FloatingButton.js
 // Archivo FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
-      this.icon = options.icon || '<i class="material-icons">chat_bubble</i>';  // Ícono de Material Icons por defecto
+      this.icon = options.icon || '<i class="material-icons fab-icon">chat_bubble</i>';  // Ícono de Material Icons
       this.text = options.text || 'Feedback';  // Texto por defecto
       this.onClick = options.onClick || function () {};  // Evento onClick
   
@@ -19,6 +20,9 @@ class FloatingButton {
   
     createButton() {
       // Crear contenedor del botón flotante
+      const mainWrapper = document.createElement('div');
+      mainWrapper.id = 'main-wrapper';
+  
       const fabWrapper = document.createElement('div');
       fabWrapper.id = 'floating-snap-btn-wrapper';
       fabWrapper.style.position = 'fixed';
@@ -30,7 +34,7 @@ class FloatingButton {
       // Crear el ícono y el texto dentro del botón
       const fabBtn = document.createElement('div');
       fabBtn.className = 'fab-btn';
-      fabBtn.innerHTML = `<span class="fab-icon">${this.icon}</span><span class="fab-text">${this.text}</span>`;
+      fabBtn.innerHTML = `<i class="material-icons fab-icon">${this.icon}</i><span class="fab-text">${this.text}</span>`;
   
       // Agregar el evento de clic
       fabBtn.addEventListener('click', this.onClick);
@@ -41,9 +45,10 @@ class FloatingButton {
   
       // Agregar al DOM
       fabWrapper.appendChild(fabBtn);
-      document.body.appendChild(fabWrapper);
+      mainWrapper.appendChild(fabWrapper);
+      document.body.appendChild(mainWrapper);
   
-      // Agregar estilos para el botón flotante (puedes ajustarlo como desees)
+      // Agregar el estilo necesario (si no se usa el archivo CSS directamente)
       const style = document.createElement('style');
       style.innerHTML = `
         #floating-snap-btn-wrapper .fab-btn {
