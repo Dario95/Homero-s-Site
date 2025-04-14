@@ -1,8 +1,8 @@
-// Version 2.5 - FloatingButton.js
+// Version 2.6 - FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
-      this.icon = options.icon || 'chat_bubble'; // Material icon name
+      this.icon = options.icon || 'chat_bubble';
       this.text = options.text || 'Feedback';
       this.onClick = options.onClick || function () {};
   
@@ -30,22 +30,28 @@ class FloatingButton {
   
       const fabBtn = document.createElement('div');
       fabBtn.className = 'fab-btn';
-      fabBtn.innerHTML = `<i class="material-icons fab-icon">${this.icon}</i><span class="fab-text">${this.text}</span>`;
+      fabBtn.style.display = 'flex';
+      fabBtn.style.alignItems = 'center';
+      fabBtn.style.gap = '8px';
+      fabBtn.style.transformOrigin = 'center';
+      fabBtn.innerHTML = `
+        <i class="material-icons fab-icon">${this.icon}</i>
+        <span class="fab-text">${this.text}</span>
+      `;
   
-      // Evitar click después de drag
       fabBtn.addEventListener('click', (e) => {
         if (!this.hasMoved) this.onClick(e);
       });
   
-      fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper));
-      fabWrapper.addEventListener('touchstart', (e) => this.mouseDown(e, fabWrapper));
+      fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper, fabBtn));
+      fabWrapper.addEventListener('touchstart', (e) => this.mouseDown(e, fabWrapper, fabBtn));
   
       fabWrapper.appendChild(fabBtn);
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
     }
   
-    mouseDown(e, fabElement) {
+    mouseDown(e, fabElement, fabBtn) {
       this.isDragging = true;
       this.hasMoved = false;
   
@@ -60,7 +66,7 @@ class FloatingButton {
   
       const moveHandler = (ev) => this.move(ev, fabElement);
       const upHandler = (ev) => {
-        this.mouseUp(ev, fabElement);
+        this.mouseUp(ev, fabElement, fabBtn);
         window.removeEventListener(moveEvent, moveHandler);
         window.removeEventListener(upEvent, upHandler);
       };
@@ -84,13 +90,13 @@ class FloatingButton {
       this.hasMoved = true;
     }
   
-    mouseUp(e, fabElement) {
+    mouseUp(e, fabElement, fabBtn) {
       this.isDragging = false;
       fabElement.style.transition = '0.3s ease-in-out';
-      this.snapToEdge(fabElement);
+      this.snapToEdge(fabElement, fabBtn);
     }
   
-    snapToEdge(fabElement) {
+    snapToEdge(fabElement, fabBtn) {
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
       const rect = fabElement.getBoundingClientRect();
@@ -99,12 +105,16 @@ class FloatingButton {
       let newTop = Math.min(Math.max(fabElement.offsetTop, edgePadding), windowHeight - rect.height - edgePadding);
       fabElement.style.top = newTop + "px";
   
-      if (fabElement.offsetLeft < windowWidth / 2) {
+      const isLeft = fabElement.offsetLeft < windowWidth / 2;
+  
+      if (isLeft) {
         fabElement.style.left = "0";
         fabElement.style.right = "";
+        fabBtn.style.transform = 'rotate(180deg)';
       } else {
         fabElement.style.left = "";
         fabElement.style.right = "0";
+        fabBtn.style.transform = 'rotate(0deg)';
       }
     }
   }
