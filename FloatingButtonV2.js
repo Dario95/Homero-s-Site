@@ -1,68 +1,67 @@
-//Version 2.0
+//Version 2.1
 // FloatingButtonV2.js
 (function () {
-    var fabElement = null;
-    var isDragging = false;
-    var customClickHandler = null;
-    var offsetX = 0;
-    var offsetY = 0;
-    var currentMoveListener = null;
+    let oldPositionX, oldPositionY;
+    let isDragging = false;
+    let customClickHandler = null;
+    let offsetX = 0;
+    let offsetY = 0;
   
-    function move(e) {
-      if (!fabElement || fabElement.classList.contains("fab-active")) return;
-      isDragging = true;
+    // Mueve el botón flotante con el mouse o toque
+    function move(e, fabElement) {
+      if (!fabElement.classList.contains("fab-active")) {
+        isDragging = true;
+        const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
   
-      var clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-      var clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-  
-      fabElement.style.top = (clientY - offsetY) + "px";
-      fabElement.style.left = (clientX - offsetX) + "px";
-      fabElement.style.right = "";
-      fabElement.classList.remove("left", "right");
+        fabElement.style.top = (clientY - offsetY) + "px";
+        fabElement.style.left = (clientX - offsetX) + "px";
+        fabElement.style.right = "";
+        fabElement.classList.remove("left", "right");
+      }
     }
   
-    function mouseDown(e) {
-      if (!fabElement) return;
+    // Acción al presionar el botón para moverlo
+    function mouseDown(e, fabElement) {
+      oldPositionY = fabElement.style.top;
+      oldPositionX = fabElement.style.left;
       isDragging = false;
   
-      var clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-      var clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-      var rect = fabElement.getBoundingClientRect();
+      const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+      const rect = fabElement.getBoundingClientRect();
   
       offsetX = clientX - rect.left;
       offsetY = clientY - rect.top;
   
-      currentMoveListener = function(ev) { move(ev); };
+      const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
+      window.addEventListener(moveEvent, function listener(ev) {
+        move(ev, fabElement);
+      });
   
-      var moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
-      window.addEventListener(moveEvent, currentMoveListener);
       fabElement.style.transition = "none";
     }
   
-    function mouseUp(e) {
-      if (!fabElement) return;
-  
-      var moveEvent = e.type === "mouseup" ? "mousemove" : "touchmove";
-      if (currentMoveListener) {
-        window.removeEventListener(moveEvent, currentMoveListener);
-        currentMoveListener = null;
-      }
-  
+    // Acción al soltar el botón después de moverlo
+    function mouseUp(e, fabElement) {
+      const moveEvent = e.type === "mouseup" ? "mousemove" : "touchmove";
+      window.removeEventListener(moveEvent, move);
       fabElement.style.transition = "0.3s ease-in-out";
-      snapToSide(e);
+      snapToSide(e, fabElement);
     }
   
-    function snapToSide(e) {
-      var windowWidth = window.innerWidth;
-      var windowHeight = window.innerHeight;
-      var rect = fabElement.getBoundingClientRect();
+    // Ajusta el botón al borde de la pantalla
+    function snapToSide(e, fabElement) {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const rect = fabElement.getBoundingClientRect();
   
-      var currX = e.type === "touchend" ? e.changedTouches[0].clientX : e.clientX;
-      var currY = e.type === "touchend" ? e.changedTouches[0].clientY : e.clientY;
+      const currX = e.type === "touchend" ? e.changedTouches[0].clientX : e.clientX;
+      const currY = e.type === "touchend" ? e.changedTouches[0].clientY : e.clientY;
   
-      var edgePadding = 0;
-      var newTop = Math.min(Math.max(currY - offsetY, edgePadding), windowHeight - rect.height - edgePadding);
+      const edgePadding = 0;
   
+      let newTop = Math.min(Math.max(currY - offsetY, edgePadding), windowHeight - rect.height - edgePadding);
       fabElement.style.top = newTop + "px";
   
       if (currX < windowWidth / 2) {
@@ -78,53 +77,43 @@
       }
     }
   
+    // Permite la asignación de un click personalizado
     function setCustomClickListener(callback) {
       customClickHandler = callback;
     }
   
+    // Esto es lo que GTM debe llamar
     window.initFloatingButton = function (surveyId) {
       function waitForFabAndInit() {
-        fabElement = document.getElementById("floating-snap-btn-wrapper");
+        const fabElement = document.getElementById("floating-snap-btn-wrapper");
+  
         if (!fabElement) {
           setTimeout(waitForFabAndInit, 100);
           return;
         }
   
         fabElement.classList.add("right");
-        var windowHeight = window.innerHeight;
-        var elementHeight = fabElement.offsetHeight;
-        var centeredTop = (windowHeight - elementHeight) / 2;
+  
+        const windowHeight = window.innerHeight;
+        const elementHeight = fabElement.offsetHeight;
+        const centeredTop = (windowHeight - elementHeight) / 2;
   
         fabElement.style.top = centeredTop + "px";
         fabElement.style.left = "";
         fabElement.style.right = "0";
   
-        fabElement.addEventListener("mousedown", mouseDown);
-        fabElement.addEventListener("mouseup", mouseUp);
-        fabElement.addEventListener("touchstart", mouseDown);
-        fabElement.addEventListener("touchend", mouseUp);
+        // Asignación de eventos para mover el botón
+        fabElement.addEventListener("mousedown", function (e) { mouseDown(e, fabElement); });
+        fabElement.addEventListener("mouseup", function (e) { mouseUp(e, fabElement); });
+        fabElement.addEventListener("touchstart", function (e) { mouseDown(e, fabElement); });
+        fabElement.addEventListener("touchend", function (e) { mouseUp(e, fabElement); });
   
+        // Si se asignó un evento personalizado, ejecutar al hacer clic
         fabElement.addEventListener("click", function () {
           if (!isDragging && typeof customClickHandler === "function") {
             customClickHandler();
           }
-          isDragging = false; // reset
         });
-  
-        // Esperar a que Userback esté listo antes de asignar
-        function waitForUserback() {
-          if (typeof Userback !== "undefined" && typeof Userback.openSurvey === "function") {
-            setCustomClickListener(function () {
-              console.log('🔎 Ejecutando encuesta Userback');
-              Userback.openSurvey(surveyId);
-            });
-          } else {
-            console.warn("⌛ Esperando Userback...");
-            setTimeout(waitForUserback, 200);
-          }
-        }
-  
-        waitForUserback();
       }
   
       waitForFabAndInit();
