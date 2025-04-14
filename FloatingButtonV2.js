@@ -1,49 +1,45 @@
-//Version 2.4
-// FloatingButtonV2.js
-// Archivo FloatingButton.js
-// Archivo FloatingButton.js
+// Version 2.5 - FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
-      this.icon = options.icon || '<i class="material-icons fab-icon">chat_bubble</i>';  // Ícono de Material Icons
-      this.text = options.text || 'Feedback';  // Texto por defecto
-      this.onClick = options.onClick || function () {};  // Evento onClick
+      this.icon = options.icon || 'chat_bubble'; // Material icon name
+      this.text = options.text || 'Feedback';
+      this.onClick = options.onClick || function () {};
   
-      // Propiedades para el movimiento del botón
       this.isDragging = false;
+      this.hasMoved = false;
       this.offsetX = 0;
       this.offsetY = 0;
   
-      // Crear el contenedor del botón
       this.createButton();
     }
   
     createButton() {
-      // Crear contenedor del botón flotante
       const mainWrapper = document.createElement('div');
       mainWrapper.id = 'main-wrapper';
   
       const fabWrapper = document.createElement('div');
       fabWrapper.id = 'floating-snap-btn-wrapper';
-      fabWrapper.style.position = 'fixed';
-      fabWrapper.style.bottom = '20px';
-      fabWrapper.style.right = '20px';
-      fabWrapper.style.zIndex = '9999';
-      fabWrapper.style.cursor = 'pointer';
+      Object.assign(fabWrapper.style, {
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        zIndex: '9999',
+        cursor: 'pointer'
+      });
   
-      // Crear el ícono y el texto dentro del botón
       const fabBtn = document.createElement('div');
       fabBtn.className = 'fab-btn';
       fabBtn.innerHTML = `<i class="material-icons fab-icon">${this.icon}</i><span class="fab-text">${this.text}</span>`;
   
-      // Agregar el evento de clic
-      fabBtn.addEventListener('click', this.onClick);
+      // Evitar click después de drag
+      fabBtn.addEventListener('click', (e) => {
+        if (!this.hasMoved) this.onClick(e);
+      });
   
-      // Agregar el evento de inicio de movimiento (mousedown/touchstart)
       fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper));
       fabWrapper.addEventListener('touchstart', (e) => this.mouseDown(e, fabWrapper));
   
-      // Agregar al DOM
       fabWrapper.appendChild(fabBtn);
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
@@ -51,6 +47,8 @@ class FloatingButton {
   
     mouseDown(e, fabElement) {
       this.isDragging = true;
+      this.hasMoved = false;
+  
       const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
       const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
       const rect = fabElement.getBoundingClientRect();
@@ -58,33 +56,37 @@ class FloatingButton {
       this.offsetX = clientX - rect.left;
       this.offsetY = clientY - rect.top;
   
-      // Remover transición para permitir movimiento inmediato
       fabElement.style.transition = 'none';
   
-      // Escuchar movimiento (mousemove/touchmove)
-      const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
-      window.addEventListener(moveEvent, (ev) => this.move(ev, fabElement));
+      const moveHandler = (ev) => this.move(ev, fabElement);
+      const upHandler = (ev) => {
+        this.mouseUp(ev, fabElement);
+        window.removeEventListener(moveEvent, moveHandler);
+        window.removeEventListener(upEvent, upHandler);
+      };
   
-      // Escuchar el evento cuando se suelta el mouse o el toque (mouseup/touchend)
-      window.addEventListener("mouseup", (ev) => this.mouseUp(ev, fabElement));
-      window.addEventListener("touchend", (ev) => this.mouseUp(ev, fabElement));
+      const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
+      const upEvent = e.type === "mousedown" ? "mouseup" : "touchend";
+  
+      window.addEventListener(moveEvent, moveHandler);
+      window.addEventListener(upEvent, upHandler);
     }
   
     move(e, fabElement) {
-      if (this.isDragging) {
-        const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+      if (!this.isDragging) return;
   
-        fabElement.style.left = clientX - this.offsetX + "px";
-        fabElement.style.top = clientY - this.offsetY + "px";
-      }
+      const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+  
+      fabElement.style.left = clientX - this.offsetX + "px";
+      fabElement.style.top = clientY - this.offsetY + "px";
+  
+      this.hasMoved = true;
     }
   
     mouseUp(e, fabElement) {
       this.isDragging = false;
-      fabElement.style.transition = '0.3s ease-in-out';  // Agregar transición al soltar
-  
-      // El botón se ajusta al borde de la pantalla (izquierda o derecha)
+      fabElement.style.transition = '0.3s ease-in-out';
       this.snapToEdge(fabElement);
     }
   
@@ -92,8 +94,8 @@ class FloatingButton {
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
       const rect = fabElement.getBoundingClientRect();
-  
       const edgePadding = 0;
+  
       let newTop = Math.min(Math.max(fabElement.offsetTop, edgePadding), windowHeight - rect.height - edgePadding);
       fabElement.style.top = newTop + "px";
   
@@ -107,6 +109,5 @@ class FloatingButton {
     }
   }
   
-  // Exponer la clase FloatingButton globalmente
   window.FloatingButton = FloatingButton;
   
