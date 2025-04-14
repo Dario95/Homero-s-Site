@@ -1,4 +1,4 @@
-// Versión 2.7.1 — Corrige posición inicial despegada al lado derecho
+// Version 2.8.0 — Corrige el posicionamiento inicial pegado al borde derecho
 
 class FloatingButton {
     constructor(options) {
@@ -20,7 +20,7 @@ class FloatingButton {
   
       const fabWrapper = document.createElement('div');
       fabWrapper.id = 'floating-snap-btn-wrapper';
-      fabWrapper.classList.add('right');
+      fabWrapper.classList.add('right'); // Inicialmente en el lado derecho
   
       Object.assign(fabWrapper.style, {
         position: 'fixed',
@@ -51,13 +51,14 @@ class FloatingButton {
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
   
-      // Esperar que se renderice completamente para posicionarlo correctamente
+      // Usar setTimeout para asegurarnos de que el contenido esté completamente renderizado
       setTimeout(() => {
         const buttonWidth = fabWrapper.offsetWidth;
+        // Esto asegura que se pega al borde derecho
         fabWrapper.style.left = `${window.innerWidth - buttonWidth}px`;
-      }, 0); // Puede ajustarse a 50ms si sigue fallando en algunos navegadores
+      }, 50); // Ajustamos el tiempo para asegurar que el cálculo sea después del renderizado
   
-      // Listeners para movimiento
+      // Escuchar eventos para el movimiento del botón
       fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper, fabBtn));
       fabWrapper.addEventListener('touchstart', (e) => this.mouseDown(e, fabWrapper, fabBtn));
     }
