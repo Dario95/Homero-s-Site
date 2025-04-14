@@ -1,4 +1,4 @@
-// Version 2.6.4 - FloatingButton.js
+// Version 2.6.5 - FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
@@ -20,14 +20,16 @@ class FloatingButton {
   
       const fabWrapper = document.createElement('div');
       fabWrapper.id = 'floating-snap-btn-wrapper';
-      fabWrapper.classList.add('right'); // ✅ empieza en el lado derecho
+      fabWrapper.classList.add('right'); // Empieza en la derecha
+  
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
-        right: '0',
+        left: 'unset',
         transform: 'translateY(-50%)',
         zIndex: '9999',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        transition: 'left 0.3s ease-in-out, top 0.3s ease-in-out' // transición aquí
       });
   
       const fabBtn = document.createElement('div');
@@ -52,6 +54,13 @@ class FloatingButton {
       fabWrapper.appendChild(fabBtn);
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
+  
+      // Colocar inicialmente en el lado derecho, centrado
+      requestAnimationFrame(() => {
+        const rect = fabWrapper.getBoundingClientRect();
+        const left = window.innerWidth - rect.width;
+        fabWrapper.style.left = `${left}px`;
+      });
     }
   
     mouseDown(e, fabElement, fabBtn) {
@@ -66,7 +75,7 @@ class FloatingButton {
       this.offsetY = clientY - rect.top;
   
       fabElement.style.transition = 'none';
-      fabElement.style.transform = ''; // Eliminar centramiento vertical durante el movimiento
+      fabElement.style.transform = ''; // eliminar centramiento vertical mientras se mueve
   
       const moveHandler = (ev) => this.move(ev, fabElement);
       const upHandler = (ev) => {
@@ -90,14 +99,13 @@ class FloatingButton {
   
       fabElement.style.left = `${clientX - this.offsetX}px`;
       fabElement.style.top = `${clientY - this.offsetY}px`;
-      fabElement.style.right = 'auto';
   
       this.hasMoved = true;
     }
   
     mouseUp(e, fabElement, fabBtn) {
       this.isDragging = false;
-      fabElement.style.transition = '0.3s ease-in-out';
+      fabElement.style.transition = 'left 0.3s ease-in-out, top 0.3s ease-in-out';
       this.snapToEdge(fabElement, fabBtn);
     }
   
@@ -107,20 +115,23 @@ class FloatingButton {
       const rect = fabElement.getBoundingClientRect();
       const edgePadding = 0;
   
-      let newTop = Math.min(Math.max(rect.top, edgePadding), windowHeight - rect.height - edgePadding);
+      const elementWidth = rect.width;
+      const elementHeight = rect.height;
+  
+      // Ajustar top
+      let newTop = Math.min(Math.max(rect.top, edgePadding), windowHeight - elementHeight - edgePadding);
       fabElement.style.top = `${newTop}px`;
   
-      const centerX = rect.left + rect.width / 2;
+      const centerX = rect.left + elementWidth / 2;
       const isCloserToLeft = centerX < windowWidth / 2;
   
       if (isCloserToLeft) {
-        fabElement.style.left = '0px';
-        fabElement.style.right = 'auto';
+        fabElement.style.left = `0px`;
         fabBtn.style.transform = 'rotate(0deg)';
         fabElement.classList.remove('right');
       } else {
-        fabElement.style.left = 'auto';
-        fabElement.style.right = '0px';
+        const newLeft = windowWidth - elementWidth;
+        fabElement.style.left = `${newLeft}px`;
         fabBtn.style.transform = 'rotate(180deg)';
         fabElement.classList.add('right');
       }
