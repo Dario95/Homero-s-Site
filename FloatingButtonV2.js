@@ -1,4 +1,4 @@
-// Version 2.6.3 - FloatingButton.js
+// Version 2.6.4 - FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
@@ -20,6 +20,7 @@ class FloatingButton {
   
       const fabWrapper = document.createElement('div');
       fabWrapper.id = 'floating-snap-btn-wrapper';
+      fabWrapper.classList.add('right'); // ✅ empieza en el lado derecho
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
@@ -65,7 +66,7 @@ class FloatingButton {
       this.offsetY = clientY - rect.top;
   
       fabElement.style.transition = 'none';
-      fabElement.style.transform = ''; // Quitar centramiento vertical
+      fabElement.style.transform = ''; // Eliminar centramiento vertical durante el movimiento
   
       const moveHandler = (ev) => this.move(ev, fabElement);
       const upHandler = (ev) => {
@@ -116,10 +117,12 @@ class FloatingButton {
         fabElement.style.left = '0px';
         fabElement.style.right = 'auto';
         fabBtn.style.transform = 'rotate(0deg)';
+        fabElement.classList.remove('right');
       } else {
         fabElement.style.left = 'auto';
         fabElement.style.right = '0px';
         fabBtn.style.transform = 'rotate(180deg)';
+        fabElement.classList.add('right');
       }
     }
   }
