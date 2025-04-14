@@ -1,4 +1,4 @@
-// Version 2.6.7 - FloatingButton.js (Fix posición inicial derecha)
+// Version 2.6.8 - FloatingButton.js (Fix transición suave en snap right)
 
 class FloatingButton {
     constructor(options) {
@@ -20,12 +20,13 @@ class FloatingButton {
   
       const fabWrapper = document.createElement('div');
       fabWrapper.id = 'floating-snap-btn-wrapper';
-      fabWrapper.classList.add('right'); // Inicia a la derecha
+      fabWrapper.classList.add('right'); // Inicia en la derecha
   
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
-        right: '0px', // Aquí usamos 'right' en vez de 'left'
+        left: 'auto',
+        right: '0px',
         zIndex: '9999',
         cursor: 'pointer',
         transition: 'left 0.3s ease-in-out, right 0.3s ease-in-out, top 0.3s ease-in-out',
@@ -60,11 +61,9 @@ class FloatingButton {
       this.isDragging = true;
       this.hasMoved = false;
   
-      // Cancelar "snap"
       fabElement.style.transition = 'none';
       fabElement.style.transform = '';
   
-      // Convertir a posición absoluta usando left antes de mover
       const rect = fabElement.getBoundingClientRect();
       fabElement.style.left = `${rect.left}px`;
       fabElement.style.top = `${rect.top}px`;
@@ -104,8 +103,12 @@ class FloatingButton {
   
     mouseUp(e, fabElement, fabBtn) {
       this.isDragging = false;
-      fabElement.style.transition = 'left 0.3s ease-in-out, right 0.3s ease-in-out, top 0.3s ease-in-out';
-      this.snapToEdge(fabElement, fabBtn);
+  
+      // Aplicar transición con leve delay para asegurar que la posición actual ya esté seteada
+      setTimeout(() => {
+        fabElement.style.transition = 'left 0.3s ease-in-out, right 0.3s ease-in-out, top 0.3s ease-in-out';
+        this.snapToEdge(fabElement, fabBtn);
+      }, 10);
     }
   
     snapToEdge(fabElement, fabBtn) {
@@ -123,13 +126,11 @@ class FloatingButton {
       const isCloserToLeft = centerX < windowWidth / 2;
   
       if (isCloserToLeft) {
-        // Snap left
         fabElement.style.left = '0px';
         fabElement.style.right = 'auto';
         fabBtn.style.transform = 'rotate(0deg)';
         fabElement.classList.remove('right');
       } else {
-        // Snap right
         fabElement.style.left = 'auto';
         fabElement.style.right = '0px';
         fabBtn.style.transform = 'rotate(180deg)';
