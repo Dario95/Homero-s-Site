@@ -1,4 +1,4 @@
-// Version 2.6.9 - Transición real al borde derecho usando solo left
+// Version 2.7.0 - Posicionamiento inicial corregido (pegado al borde derecho)
 
 class FloatingButton {
     constructor(options) {
@@ -25,7 +25,7 @@ class FloatingButton {
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
-        left: `${window.innerWidth - 60}px`, // Aparece pegado a la derecha (aproximado)
+        left: '0px', // temporal
         zIndex: '9999',
         cursor: 'pointer',
         transition: 'left 0.3s ease-in-out, top 0.3s ease-in-out',
@@ -48,12 +48,19 @@ class FloatingButton {
         if (!this.hasMoved) this.onClick(e);
       });
   
-      fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper, fabBtn));
-      fabWrapper.addEventListener('touchstart', (e) => this.mouseDown(e, fabWrapper, fabBtn));
-  
       fabWrapper.appendChild(fabBtn);
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
+  
+      // Asegurar que el botón se haya renderizado y medir su ancho
+      requestAnimationFrame(() => {
+        const buttonWidth = fabWrapper.offsetWidth;
+        fabWrapper.style.left = `${window.innerWidth - buttonWidth}px`;
+      });
+  
+      // Listeners para movimiento
+      fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper, fabBtn));
+      fabWrapper.addEventListener('touchstart', (e) => this.mouseDown(e, fabWrapper, fabBtn));
     }
   
     mouseDown(e, fabElement, fabBtn) {
