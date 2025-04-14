@@ -37,7 +37,6 @@ class FloatingButton {
       fabBtn.className = 'fab-btn';
       fabBtn.style.display = 'flex';
       fabBtn.style.alignItems = 'center';
-      fabBtn.style.gap = '8px';
       fabBtn.style.transformOrigin = 'center';
       fabBtn.style.transform = 'rotate(180deg)';
       fabBtn.innerHTML = `

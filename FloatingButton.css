@@ -49,9 +49,11 @@
 
 .fab-text {
   white-space: nowrap;
+  margin-bottom: 5px;
 }
 
 .fab-icon {
   font-size: 18px !important;
-  margin-bottom:5px;
+  margin-bottom: 5px;
+    margin-top: 5px;
 }
