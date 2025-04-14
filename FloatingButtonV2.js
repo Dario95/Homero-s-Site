@@ -1,4 +1,4 @@
-//Version 2.2
+//Version 2.3
 // FloatingButtonV2.js
 // Archivo FloatingButton.js
 
