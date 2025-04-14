@@ -1,4 +1,4 @@
-// Version 2.6.2 - FloatingButton.js
+// Version 2.6.3 - FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
@@ -22,8 +22,9 @@ class FloatingButton {
       fabWrapper.id = 'floating-snap-btn-wrapper';
       Object.assign(fabWrapper.style, {
         position: 'fixed',
-        bottom: '20px',
-        right: '20px',
+        top: '50%',
+        right: '0',
+        transform: 'translateY(-50%)',
         zIndex: '9999',
         cursor: 'pointer'
       });
@@ -34,6 +35,7 @@ class FloatingButton {
       fabBtn.style.alignItems = 'center';
       fabBtn.style.gap = '8px';
       fabBtn.style.transformOrigin = 'center';
+      fabBtn.style.transform = 'rotate(180deg)';
       fabBtn.innerHTML = `
         <i class="material-icons fab-icon">${this.icon}</i>
         <span class="fab-text">${this.text}</span>
@@ -63,6 +65,7 @@ class FloatingButton {
       this.offsetY = clientY - rect.top;
   
       fabElement.style.transition = 'none';
+      fabElement.style.transform = ''; // Quitar centramiento vertical
   
       const moveHandler = (ev) => this.move(ev, fabElement);
       const upHandler = (ev) => {
@@ -110,12 +113,10 @@ class FloatingButton {
       const isCloserToLeft = centerX < windowWidth / 2;
   
       if (isCloserToLeft) {
-        // Pegar a la izquierda
         fabElement.style.left = '0px';
         fabElement.style.right = 'auto';
         fabBtn.style.transform = 'rotate(0deg)';
       } else {
-        // Pegar a la derecha
         fabElement.style.left = 'auto';
         fabElement.style.right = '0px';
         fabBtn.style.transform = 'rotate(180deg)';
