@@ -1,4 +1,4 @@
-// Version 2.8.0 — Corrige el posicionamiento inicial pegado al borde derecho
+// Version 2.9.0 — Posicionamiento inicial con right: 0 (sin left)
 
 class FloatingButton {
     constructor(options) {
@@ -22,13 +22,15 @@ class FloatingButton {
       fabWrapper.id = 'floating-snap-btn-wrapper';
       fabWrapper.classList.add('right'); // Inicialmente en el lado derecho
   
+      // Usar right: 0 para posicionarlo correctamente
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
         zIndex: '9999',
         cursor: 'pointer',
         transform: 'translateY(-50%)',
-        transition: 'left 0.3s ease-in-out, top 0.3s ease-in-out',
+        transition: 'right 0.3s ease-in-out, top 0.3s ease-in-out', // Transición solo en right
+        right: '0', // Posición inicial en el borde derecho
       });
   
       const fabBtn = document.createElement('div');
@@ -50,13 +52,6 @@ class FloatingButton {
       fabWrapper.appendChild(fabBtn);
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
-  
-      // Usar setTimeout para asegurarnos de que el contenido esté completamente renderizado
-      setTimeout(() => {
-        const buttonWidth = fabWrapper.offsetWidth;
-        // Esto asegura que se pega al borde derecho
-        fabWrapper.style.left = `${window.innerWidth - buttonWidth}px`;
-      }, 50); // Ajustamos el tiempo para asegurar que el cálculo sea después del renderizado
   
       // Escuchar eventos para el movimiento del botón
       fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper, fabBtn));
@@ -104,7 +99,7 @@ class FloatingButton {
       this.isDragging = false;
   
       setTimeout(() => {
-        fabElement.style.transition = 'left 0.3s ease-in-out, top 0.3s ease-in-out';
+        fabElement.style.transition = 'right 0.3s ease-in-out, top 0.3s ease-in-out';
         this.snapToEdge(fabElement, fabBtn);
       }, 10);
     }
@@ -121,11 +116,13 @@ class FloatingButton {
       const isCloserToLeft = centerX < windowWidth / 2;
   
       if (isCloserToLeft) {
-        fabElement.style.left = '0px';
+        fabElement.style.right = ''; // Deshabilitar right
+        fabElement.style.left = '0px'; // Pegarse al lado izquierdo
         fabElement.classList.remove('right');
         fabBtn.style.transform = 'rotate(0deg)';
       } else {
-        fabElement.style.left = `${windowWidth - rect.width}px`;
+        fabElement.style.left = ''; // Deshabilitar left
+        fabElement.style.right = '0px'; // Pegarse al lado derecho
         fabElement.classList.add('right');
         fabBtn.style.transform = 'rotate(180deg)';
       }
