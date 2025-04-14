@@ -1,4 +1,4 @@
-// Version 2.6.6 - FloatingButton.js
+// Version 2.6.7 - FloatingButton.js (Fix posición inicial derecha)
 
 class FloatingButton {
     constructor(options) {
@@ -20,14 +20,15 @@ class FloatingButton {
   
       const fabWrapper = document.createElement('div');
       fabWrapper.id = 'floating-snap-btn-wrapper';
-      fabWrapper.classList.add('right'); // Empieza en la derecha
+      fabWrapper.classList.add('right'); // Inicia a la derecha
   
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
+        right: '0px', // Aquí usamos 'right' en vez de 'left'
         zIndex: '9999',
         cursor: 'pointer',
-        transition: 'left 0.3s ease-in-out, top 0.3s ease-in-out',
+        transition: 'left 0.3s ease-in-out, right 0.3s ease-in-out, top 0.3s ease-in-out',
         transform: 'translateY(-50%)',
       });
   
@@ -53,28 +54,30 @@ class FloatingButton {
       fabWrapper.appendChild(fabBtn);
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
-  
-      // Esperar a que el botón se renderice completamente
-      setTimeout(() => {
-        const rect = fabWrapper.getBoundingClientRect();
-        const left = window.innerWidth - rect.width;
-        fabWrapper.style.left = `${left}px`;
-      }, 0);
     }
   
     mouseDown(e, fabElement, fabBtn) {
       this.isDragging = true;
       this.hasMoved = false;
   
+      // Cancelar "snap"
+      fabElement.style.transition = 'none';
+      fabElement.style.transform = '';
+  
+      // Convertir a posición absoluta usando left antes de mover
+      const rect = fabElement.getBoundingClientRect();
+      fabElement.style.left = `${rect.left}px`;
+      fabElement.style.top = `${rect.top}px`;
+      fabElement.style.right = 'auto';
+  
       const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
       const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-      const rect = fabElement.getBoundingClientRect();
   
       this.offsetX = clientX - rect.left;
       this.offsetY = clientY - rect.top;
   
-      fabElement.style.transition = 'none';
-      fabElement.style.transform = ''; // quitar centrado vertical mientras se mueve
+      const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
+      const upEvent = e.type === "mousedown" ? "mouseup" : "touchend";
   
       const moveHandler = (ev) => this.move(ev, fabElement);
       const upHandler = (ev) => {
@@ -82,9 +85,6 @@ class FloatingButton {
         window.removeEventListener(moveEvent, moveHandler);
         window.removeEventListener(upEvent, upHandler);
       };
-  
-      const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
-      const upEvent = e.type === "mousedown" ? "mouseup" : "touchend";
   
       window.addEventListener(moveEvent, moveHandler);
       window.addEventListener(upEvent, upHandler);
@@ -104,7 +104,7 @@ class FloatingButton {
   
     mouseUp(e, fabElement, fabBtn) {
       this.isDragging = false;
-      fabElement.style.transition = 'left 0.3s ease-in-out, top 0.3s ease-in-out';
+      fabElement.style.transition = 'left 0.3s ease-in-out, right 0.3s ease-in-out, top 0.3s ease-in-out';
       this.snapToEdge(fabElement, fabBtn);
     }
   
@@ -112,24 +112,26 @@ class FloatingButton {
       const windowWidth = window.innerWidth;
       const windowHeight = window.innerHeight;
       const rect = fabElement.getBoundingClientRect();
-      const edgePadding = 0;
   
       const elementWidth = rect.width;
       const elementHeight = rect.height;
   
-      let newTop = Math.min(Math.max(rect.top, edgePadding), windowHeight - elementHeight - edgePadding);
+      let newTop = Math.min(Math.max(rect.top, 0), windowHeight - elementHeight);
       fabElement.style.top = `${newTop}px`;
   
       const centerX = rect.left + elementWidth / 2;
       const isCloserToLeft = centerX < windowWidth / 2;
   
       if (isCloserToLeft) {
-        fabElement.style.left = `0px`;
+        // Snap left
+        fabElement.style.left = '0px';
+        fabElement.style.right = 'auto';
         fabBtn.style.transform = 'rotate(0deg)';
         fabElement.classList.remove('right');
       } else {
-        const newLeft = windowWidth - elementWidth;
-        fabElement.style.left = `${newLeft}px`;
+        // Snap right
+        fabElement.style.left = 'auto';
+        fabElement.style.right = '0px';
         fabBtn.style.transform = 'rotate(180deg)';
         fabElement.classList.add('right');
       }
