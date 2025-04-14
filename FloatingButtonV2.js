@@ -1,4 +1,4 @@
-// Version 2.10.0 — Transición correctamente aplicada entre los bordes con right/left
+// Version 2.10.1 — Transición correctamente aplicada entre los bordes con right/left
 
 class FloatingButton {
     constructor(options) {
@@ -20,17 +20,16 @@ class FloatingButton {
   
       const fabWrapper = document.createElement('div');
       fabWrapper.id = 'floating-snap-btn-wrapper';
-      fabWrapper.classList.add('right'); // Inicialmente en el lado derecho
+      fabWrapper.classList.add('right'); // Posición inicial
   
-      // Usar right: 0 para posicionarlo correctamente
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
+        transform: 'translateY(-50%)',
         zIndex: '9999',
         cursor: 'pointer',
-        transform: 'translateY(-50%)',
-        transition: 'right 0.3s ease-in-out, left 0.3s ease-in-out, top 0.3s ease-in-out', // Transición en ambos lados
-        right: '0', // Posición inicial en el borde derecho
+        right: '0',
+        transition: 'right 0.3s ease-in-out, left 0.3s ease-in-out, top 0.3s ease-in-out',
       });
   
       const fabBtn = document.createElement('div');
@@ -53,7 +52,6 @@ class FloatingButton {
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
   
-      // Escuchar eventos para el movimiento del botón
       fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper, fabBtn));
       fabWrapper.addEventListener('touchstart', (e) => this.mouseDown(e, fabWrapper, fabBtn));
     }
@@ -62,8 +60,8 @@ class FloatingButton {
       this.isDragging = true;
       this.hasMoved = false;
   
-      fabElement.style.transition = 'none'; // Deshabilitar transición al mover
-      fabElement.style.transform = ''; // Resetear cualquier transformación
+      // Quitar transiciones durante movimiento
+      fabElement.style.transition = 'none';
   
       const rect = fabElement.getBoundingClientRect();
       this.offsetX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - rect.left;
@@ -92,16 +90,22 @@ class FloatingButton {
       fabElement.style.left = `${clientX - this.offsetX}px`;
       fabElement.style.top = `${clientY - this.offsetY}px`;
   
+      // Eliminar "right" para permitir movimiento libre
+      fabElement.style.right = '';
+  
       this.hasMoved = true;
     }
   
     mouseUp(e, fabElement, fabBtn) {
       this.isDragging = false;
   
-      setTimeout(() => {
-        fabElement.style.transition = 'right 0.3s ease-in-out, left 0.3s ease-in-out, top 0.3s ease-in-out'; // Rehabilitar la transición
-        this.snapToEdge(fabElement, fabBtn);
-      }, 10);
+      // Forzar reflujo para reiniciar transiciones (clave para que se apliquen correctamente)
+      void fabElement.offsetWidth;
+  
+      // Rehabilitar transición después de liberar el botón
+      fabElement.style.transition = 'right 0.3s ease-in-out, left 0.3s ease-in-out, top 0.3s ease-in-out';
+  
+      this.snapToEdge(fabElement, fabBtn);
     }
   
     snapToEdge(fabElement, fabBtn) {
@@ -113,18 +117,19 @@ class FloatingButton {
       fabElement.style.top = `${newTop}px`;
   
       const centerX = rect.left + rect.width / 2;
-      const isCloserToLeft = centerX < windowWidth / 2;
+      const isLeft = centerX < windowWidth / 2;
   
-      if (isCloserToLeft) {
-        // Mover el botón al borde izquierdo
-        fabElement.style.right = ''; // Deshabilitar right
-        fabElement.style.left = '0px'; // Pegarse al lado izquierdo
+      if (isLeft) {
+        // Borde izquierdo
+        fabElement.style.right = '';
+        fabElement.style.left = '0px';
         fabElement.classList.remove('right');
         fabBtn.style.transform = 'rotate(0deg)';
       } else {
-        // Mover el botón al borde derecho
-        fabElement.style.left = ''; // Deshabilitar left
-        fabElement.style.right = '0px'; // Pegarse al lado derecho
+        // Borde derecho con transición
+        fabElement.style.left = '';
+        void fabElement.offsetWidth; // Reflujo para asegurar transición
+        fabElement.style.right = '0px';
         fabElement.classList.add('right');
         fabBtn.style.transform = 'rotate(180deg)';
       }
