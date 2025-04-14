@@ -1,4 +1,4 @@
-// Version 2.6.1 - FloatingButton.js
+// Version 2.6.2 - FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
@@ -84,9 +84,9 @@ class FloatingButton {
       const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
       const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
   
-      fabElement.style.left = clientX - this.offsetX + "px";
-      fabElement.style.top = clientY - this.offsetY + "px";
-      fabElement.style.right = "auto"; // limpia right temporal
+      fabElement.style.left = `${clientX - this.offsetX}px`;
+      fabElement.style.top = `${clientY - this.offsetY}px`;
+      fabElement.style.right = 'auto';
   
       this.hasMoved = true;
     }
@@ -103,19 +103,21 @@ class FloatingButton {
       const rect = fabElement.getBoundingClientRect();
       const edgePadding = 0;
   
-      let newTop = Math.min(Math.max(fabElement.offsetTop, edgePadding), windowHeight - rect.height - edgePadding);
-      fabElement.style.top = newTop + "px";
+      let newTop = Math.min(Math.max(rect.top, edgePadding), windowHeight - rect.height - edgePadding);
+      fabElement.style.top = `${newTop}px`;
   
       const centerX = rect.left + rect.width / 2;
-      const isLeft = centerX < windowWidth / 2;
+      const isCloserToLeft = centerX < windowWidth / 2;
   
-      if (isLeft) {
-        fabElement.style.setProperty('left', '0');
-        fabElement.style.removeProperty('right');
+      if (isCloserToLeft) {
+        // Pegar a la izquierda
+        fabElement.style.left = '0px';
+        fabElement.style.right = 'auto';
         fabBtn.style.transform = 'rotate(0deg)';
       } else {
-        fabElement.style.setProperty('right', '0');
-        fabElement.style.removeProperty('left');
+        // Pegar a la derecha
+        fabElement.style.left = 'auto';
+        fabElement.style.right = '0px';
         fabBtn.style.transform = 'rotate(180deg)';
       }
     }
