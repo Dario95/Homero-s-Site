@@ -1,5 +1,5 @@
-// Version 2.10.0 — Transición correctamente aplicada entre los bordes con right/left
-
+// Version 2.10.1 — Transición correctamente aplicada entre los bordes con right/left
+if (!window.FloatingButton) {
 class FloatingButton {
     constructor(options) {
       this.icon = options.icon || 'chat_bubble';
@@ -132,4 +132,4 @@ class FloatingButton {
   }
   
   window.FloatingButton = FloatingButton;
-  
+}
