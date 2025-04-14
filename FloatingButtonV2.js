@@ -1,4 +1,4 @@
-// Version 2.6.5 - FloatingButton.js
+// Version 2.6.6 - FloatingButton.js
 
 class FloatingButton {
     constructor(options) {
@@ -25,11 +25,10 @@ class FloatingButton {
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
-        left: 'unset',
-        transform: 'translateY(-50%)',
         zIndex: '9999',
         cursor: 'pointer',
-        transition: 'left 0.3s ease-in-out, top 0.3s ease-in-out' // transición aquí
+        transition: 'left 0.3s ease-in-out, top 0.3s ease-in-out',
+        transform: 'translateY(-50%)',
       });
   
       const fabBtn = document.createElement('div');
@@ -55,12 +54,12 @@ class FloatingButton {
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
   
-      // Colocar inicialmente en el lado derecho, centrado
-      requestAnimationFrame(() => {
+      // Esperar a que el botón se renderice completamente
+      setTimeout(() => {
         const rect = fabWrapper.getBoundingClientRect();
         const left = window.innerWidth - rect.width;
         fabWrapper.style.left = `${left}px`;
-      });
+      }, 0);
     }
   
     mouseDown(e, fabElement, fabBtn) {
@@ -75,7 +74,7 @@ class FloatingButton {
       this.offsetY = clientY - rect.top;
   
       fabElement.style.transition = 'none';
-      fabElement.style.transform = ''; // eliminar centramiento vertical mientras se mueve
+      fabElement.style.transform = ''; // quitar centrado vertical mientras se mueve
   
       const moveHandler = (ev) => this.move(ev, fabElement);
       const upHandler = (ev) => {
@@ -118,7 +117,6 @@ class FloatingButton {
       const elementWidth = rect.width;
       const elementHeight = rect.height;
   
-      // Ajustar top
       let newTop = Math.min(Math.max(rect.top, edgePadding), windowHeight - elementHeight - edgePadding);
       fabElement.style.top = `${newTop}px`;
   
