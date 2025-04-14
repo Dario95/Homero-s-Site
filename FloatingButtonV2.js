@@ -1,66 +1,71 @@
+//Version 2.0
+// FloatingButtonV2.js
 (function () {
-    let isDragging = false;
-    let customClickHandler = null;
-    let offsetX = 0;
-    let offsetY = 0;
-    let currentMoveEvent = null;
+    var fabElement = null;
+    var isDragging = false;
+    var customClickHandler = null;
+    var offsetX = 0;
+    var offsetY = 0;
+    var currentMoveListener = null;
   
-    function move(e, fabElement) {
-      if (!fabElement.classList.contains("fab-active")) {
-        isDragging = true;
-        const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-        const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+    function move(e) {
+      if (!fabElement || fabElement.classList.contains("fab-active")) return;
+      isDragging = true;
   
-        fabElement.style.top = (clientY - offsetY) + "px";
-        fabElement.style.left = (clientX - offsetX) + "px";
-        fabElement.style.right = "";
-        fabElement.classList.remove("left", "right");
-      }
+      var clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+      var clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+  
+      fabElement.style.top = (clientY - offsetY) + "px";
+      fabElement.style.left = (clientX - offsetX) + "px";
+      fabElement.style.right = "";
+      fabElement.classList.remove("left", "right");
     }
   
-    function mouseDown(e, fabElement) {
+    function mouseDown(e) {
+      if (!fabElement) return;
       isDragging = false;
   
-      const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-      const rect = fabElement.getBoundingClientRect();
+      var clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+      var clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+      var rect = fabElement.getBoundingClientRect();
   
       offsetX = clientX - rect.left;
       offsetY = clientY - rect.top;
   
+      currentMoveListener = function(ev) { move(ev); };
+  
+      var moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
+      window.addEventListener(moveEvent, currentMoveListener);
       fabElement.style.transition = "none";
-  
-      const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
-      const upEvent = e.type === "mousedown" ? "mouseup" : "touchend";
-  
-      currentMoveEvent = (ev) => move(ev, fabElement);
-      window.addEventListener(moveEvent, currentMoveEvent);
-  
-      const upListener = (ev) => {
-        window.removeEventListener(moveEvent, currentMoveEvent);
-        currentMoveEvent = null;
-  
-        fabElement.style.transition = "0.3s ease-in-out";
-        snapToSide(ev, fabElement);
-        setTimeout(() => { isDragging = false; }, 50);
-      };
-  
-      window.addEventListener(upEvent, upListener, { once: true });
     }
   
-    function snapToSide(e, fabElement) {
-      const windowWidth = window.innerWidth;
-      const windowHeight = window.innerHeight;
-      const rect = fabElement.getBoundingClientRect();
+    function mouseUp(e) {
+      if (!fabElement) return;
   
-      const clientX = e.type === "touchend" ? e.changedTouches[0].clientX : e.clientX;
-      const clientY = e.type === "touchend" ? e.changedTouches[0].clientY : e.clientY;
+      var moveEvent = e.type === "mouseup" ? "mousemove" : "touchmove";
+      if (currentMoveListener) {
+        window.removeEventListener(moveEvent, currentMoveListener);
+        currentMoveListener = null;
+      }
   
-      const edgePadding = 0;
-      const newTop = Math.min(Math.max(clientY - offsetY, edgePadding), windowHeight - rect.height - edgePadding);
+      fabElement.style.transition = "0.3s ease-in-out";
+      snapToSide(e);
+    }
+  
+    function snapToSide(e) {
+      var windowWidth = window.innerWidth;
+      var windowHeight = window.innerHeight;
+      var rect = fabElement.getBoundingClientRect();
+  
+      var currX = e.type === "touchend" ? e.changedTouches[0].clientX : e.clientX;
+      var currY = e.type === "touchend" ? e.changedTouches[0].clientY : e.clientY;
+  
+      var edgePadding = 0;
+      var newTop = Math.min(Math.max(currY - offsetY, edgePadding), windowHeight - rect.height - edgePadding);
+  
       fabElement.style.top = newTop + "px";
   
-      if (clientX < windowWidth / 2) {
+      if (currX < windowWidth / 2) {
         fabElement.style.left = "0";
         fabElement.style.right = "";
         fabElement.classList.remove("right");
@@ -79,41 +84,47 @@
   
     window.initFloatingButton = function (surveyId) {
       function waitForFabAndInit() {
-        const fabElement = document.getElementById("floating-snap-btn-wrapper");
-  
+        fabElement = document.getElementById("floating-snap-btn-wrapper");
         if (!fabElement) {
           setTimeout(waitForFabAndInit, 100);
           return;
         }
   
         fabElement.classList.add("right");
-  
-        const windowHeight = window.innerHeight;
-        const elementHeight = fabElement.offsetHeight;
-        const centeredTop = (windowHeight - elementHeight) / 2;
+        var windowHeight = window.innerHeight;
+        var elementHeight = fabElement.offsetHeight;
+        var centeredTop = (windowHeight - elementHeight) / 2;
   
         fabElement.style.top = centeredTop + "px";
         fabElement.style.left = "";
         fabElement.style.right = "0";
   
-        // Listeners
-        fabElement.addEventListener("mousedown", (e) => mouseDown(e, fabElement));
-        fabElement.addEventListener("touchstart", (e) => mouseDown(e, fabElement));
+        fabElement.addEventListener("mousedown", mouseDown);
+        fabElement.addEventListener("mouseup", mouseUp);
+        fabElement.addEventListener("touchstart", mouseDown);
+        fabElement.addEventListener("touchend", mouseUp);
   
-        fabElement.addEventListener("click", () => {
+        fabElement.addEventListener("click", function () {
           if (!isDragging && typeof customClickHandler === "function") {
             customClickHandler();
           }
+          isDragging = false; // reset
         });
   
-        setCustomClickListener(() => {
-          console.log("📩 Encuesta activada");
+        // Esperar a que Userback esté listo antes de asignar
+        function waitForUserback() {
           if (typeof Userback !== "undefined" && typeof Userback.openSurvey === "function") {
-            Userback.openSurvey(surveyId);
+            setCustomClickListener(function () {
+              console.log('🔎 Ejecutando encuesta Userback');
+              Userback.openSurvey(surveyId);
+            });
           } else {
-            console.error("❌ Userback no disponible o no tiene openSurvey.");
+            console.warn("⌛ Esperando Userback...");
+            setTimeout(waitForUserback, 200);
           }
-        });
+        }
+  
+        waitForUserback();
       }
   
       waitForFabAndInit();
