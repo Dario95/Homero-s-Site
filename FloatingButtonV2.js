@@ -1,125 +1,125 @@
-//Version 2.2
+//Version 2.1
 // FloatingButtonV2.js
-// Archivo FloatingButton.js
-
-class FloatingButton {
-  constructor(options) {
-    this.icon = options.icon || '<i class="material-icons">chat_bubble</i>';  // Ícono de Material Icons por defecto
-    this.text = options.text || 'Feedback';  // Texto por defecto
-    this.onClick = options.onClick || function () {};  // Evento onClick
-
-    // Propiedades para el movimiento del botón
-    this.isDragging = false;
-    this.offsetX = 0;
-    this.offsetY = 0;
-
-    // Crear el contenedor del botón
-    this.createButton();
-  }
-
-  createButton() {
-    // Crear contenedor del botón flotante
-    const fabWrapper = document.createElement('div');
-    fabWrapper.id = 'floating-snap-btn-wrapper';
-    fabWrapper.style.position = 'fixed';
-    fabWrapper.style.bottom = '20px';
-    fabWrapper.style.right = '20px';
-    fabWrapper.style.zIndex = '9999';
-    fabWrapper.style.cursor = 'pointer';
-
-    // Crear el ícono y el texto dentro del botón
-    const fabBtn = document.createElement('div');
-    fabBtn.className = 'fab-btn';
-    fabBtn.innerHTML = `<span class="fab-icon">${this.icon}</span><span class="fab-text">${this.text}</span>`;
-
-    // Agregar el evento de clic
-    fabBtn.addEventListener('click', this.onClick);
-
-    // Agregar el evento de inicio de movimiento (mousedown/touchstart)
-    fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper));
-    fabWrapper.addEventListener('touchstart', (e) => this.mouseDown(e, fabWrapper));
-
-    // Agregar al DOM
-    fabWrapper.appendChild(fabBtn);
-    document.body.appendChild(fabWrapper);
-
-    // Agregar estilos para el botón flotante (puedes ajustarlo como desees)
-    const style = document.createElement('style');
-    style.innerHTML = `
-      #floating-snap-btn-wrapper .fab-btn {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #007bff;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 50px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+(function () {
+    let oldPositionX, oldPositionY;
+    let isDragging = false;
+    let customClickHandler = null;
+    let offsetX = 0;
+    let offsetY = 0;
+  
+    // Mueve el botón flotante con el mouse o toque
+    function move(e, fabElement) {
+      if (!fabElement.classList.contains("fab-active")) {
+        isDragging = true;
+        const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+  
+        fabElement.style.top = (clientY - offsetY) + "px";
+        fabElement.style.left = (clientX - offsetX) + "px";
+        fabElement.style.right = "";
+        fabElement.classList.remove("left", "right");
       }
-      #floating-snap-btn-wrapper .fab-icon {
-        margin-right: 10px;
+    }
+  
+    // Acción al presionar el botón para moverlo
+    function mouseDown(e, fabElement) {
+      oldPositionY = fabElement.style.top;
+      oldPositionX = fabElement.style.left;
+      isDragging = false;
+  
+      const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+      const rect = fabElement.getBoundingClientRect();
+  
+      offsetX = clientX - rect.left;
+      offsetY = clientY - rect.top;
+  
+      const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
+      window.addEventListener(moveEvent, function listener(ev) {
+        move(ev, fabElement);
+      });
+  
+      fabElement.style.transition = "none";
+    }
+  
+    // Acción al soltar el botón después de moverlo
+    function mouseUp(e, fabElement) {
+      const moveEvent = e.type === "mouseup" ? "mousemove" : "touchmove";
+      window.removeEventListener(moveEvent, move);
+      fabElement.style.transition = "0.3s ease-in-out";
+      snapToSide(e, fabElement);
+    }
+  
+    // Ajusta el botón al borde de la pantalla
+    function snapToSide(e, fabElement) {
+      const windowWidth = window.innerWidth;
+      const windowHeight = window.innerHeight;
+      const rect = fabElement.getBoundingClientRect();
+  
+      const currX = e.type === "touchend" ? e.changedTouches[0].clientX : e.clientX;
+      const currY = e.type === "touchend" ? e.changedTouches[0].clientY : e.clientY;
+  
+      const edgePadding = 0;
+  
+      let newTop = Math.min(Math.max(currY - offsetY, edgePadding), windowHeight - rect.height - edgePadding);
+      fabElement.style.top = newTop + "px";
+  
+      if (currX < windowWidth / 2) {
+        fabElement.style.left = "0";
+        fabElement.style.right = "";
+        fabElement.classList.remove("right");
+        fabElement.classList.add("left");
+      } else {
+        fabElement.style.left = "";
+        fabElement.style.right = "0";
+        fabElement.classList.remove("left");
+        fabElement.classList.add("right");
       }
-    `;
-    document.head.appendChild(style);
-  }
-
-  mouseDown(e, fabElement) {
-    this.isDragging = true;
-    const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
-    const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
-    const rect = fabElement.getBoundingClientRect();
-
-    this.offsetX = clientX - rect.left;
-    this.offsetY = clientY - rect.top;
-
-    // Remover transición para permitir movimiento inmediato
-    fabElement.style.transition = 'none';
-
-    // Escuchar movimiento (mousemove/touchmove)
-    const moveEvent = e.type === "mousedown" ? "mousemove" : "touchmove";
-    window.addEventListener(moveEvent, (ev) => this.move(ev, fabElement));
-
-    // Escuchar el evento cuando se suelta el mouse o el toque (mouseup/touchend)
-    window.addEventListener("mouseup", (ev) => this.mouseUp(ev, fabElement));
-    window.addEventListener("touchend", (ev) => this.mouseUp(ev, fabElement));
-  }
-
-  move(e, fabElement) {
-    if (this.isDragging) {
-      const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
-
-      fabElement.style.left = clientX - this.offsetX + "px";
-      fabElement.style.top = clientY - this.offsetY + "px";
     }
-  }
-
-  mouseUp(e, fabElement) {
-    this.isDragging = false;
-    fabElement.style.transition = '0.3s ease-in-out';  // Agregar transición al soltar
-
-    // El botón se ajusta al borde de la pantalla (izquierda o derecha)
-    this.snapToEdge(fabElement);
-  }
-
-  snapToEdge(fabElement) {
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    const rect = fabElement.getBoundingClientRect();
-
-    const edgePadding = 0;
-    let newTop = Math.min(Math.max(fabElement.offsetTop, edgePadding), windowHeight - rect.height - edgePadding);
-    fabElement.style.top = newTop + "px";
-
-    if (fabElement.offsetLeft < windowWidth / 2) {
-      fabElement.style.left = "0";
-      fabElement.style.right = "";
-    } else {
-      fabElement.style.left = "";
-      fabElement.style.right = "0";
+  
+    // Permite la asignación de un click personalizado
+    function setCustomClickListener(callback) {
+      customClickHandler = callback;
     }
-  }
-}
-
-// Exponer la clase FloatingButton globalmente
-window.FloatingButton = FloatingButton;
+  
+    // Esto es lo que GTM debe llamar
+    window.initFloatingButton = function (surveyId) {
+      function waitForFabAndInit() {
+        const fabElement = document.getElementById("floating-snap-btn-wrapper");
+  
+        if (!fabElement) {
+          setTimeout(waitForFabAndInit, 100);
+          return;
+        }
+  
+        fabElement.classList.add("right");
+  
+        const windowHeight = window.innerHeight;
+        const elementHeight = fabElement.offsetHeight;
+        const centeredTop = (windowHeight - elementHeight) / 2;
+  
+        fabElement.style.top = centeredTop + "px";
+        fabElement.style.left = "";
+        fabElement.style.right = "0";
+  
+        // Asignación de eventos para mover el botón
+        fabElement.addEventListener("mousedown", function (e) { mouseDown(e, fabElement); });
+        fabElement.addEventListener("mouseup", function (e) { mouseUp(e, fabElement); });
+        fabElement.addEventListener("touchstart", function (e) { mouseDown(e, fabElement); });
+        fabElement.addEventListener("touchend", function (e) { mouseUp(e, fabElement); });
+  
+        // Si se asignó un evento personalizado, ejecutar al hacer clic
+        fabElement.addEventListener("click", function () {
+          if (!isDragging && typeof customClickHandler === "function") {
+            console.log('El botón fue clickeado y la función personalizada se ejecutó.');
+            customClickHandler();
+          } else {
+            console.log('Se detectó un intento de clic, pero el botón estaba siendo movido.');
+          }
+        });
+      }
+  
+      waitForFabAndInit();
+    };
+  })();
+  
