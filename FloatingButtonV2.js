@@ -1,4 +1,4 @@
-// Version 2.7.0 - Posicionamiento inicial corregido (pegado al borde derecho)
+// Versión 2.7.1 — Corrige posición inicial despegada al lado derecho
 
 class FloatingButton {
     constructor(options) {
@@ -25,11 +25,10 @@ class FloatingButton {
       Object.assign(fabWrapper.style, {
         position: 'fixed',
         top: '50%',
-        left: '0px', // temporal
         zIndex: '9999',
         cursor: 'pointer',
-        transition: 'left 0.3s ease-in-out, top 0.3s ease-in-out',
         transform: 'translateY(-50%)',
+        transition: 'left 0.3s ease-in-out, top 0.3s ease-in-out',
       });
   
       const fabBtn = document.createElement('div');
@@ -52,11 +51,11 @@ class FloatingButton {
       mainWrapper.appendChild(fabWrapper);
       document.body.appendChild(mainWrapper);
   
-      // Asegurar que el botón se haya renderizado y medir su ancho
-      requestAnimationFrame(() => {
+      // Esperar que se renderice completamente para posicionarlo correctamente
+      setTimeout(() => {
         const buttonWidth = fabWrapper.offsetWidth;
         fabWrapper.style.left = `${window.innerWidth - buttonWidth}px`;
-      });
+      }, 0); // Puede ajustarse a 50ms si sigue fallando en algunos navegadores
   
       // Listeners para movimiento
       fabWrapper.addEventListener('mousedown', (e) => this.mouseDown(e, fabWrapper, fabBtn));
