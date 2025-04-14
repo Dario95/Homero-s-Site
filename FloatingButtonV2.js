@@ -1,4 +1,4 @@
-// Version 2.9.0 — Posicionamiento inicial con right: 0 (sin left)
+// Version 2.10.0 — Transición correctamente aplicada entre los bordes con right/left
 
 class FloatingButton {
     constructor(options) {
@@ -29,7 +29,7 @@ class FloatingButton {
         zIndex: '9999',
         cursor: 'pointer',
         transform: 'translateY(-50%)',
-        transition: 'right 0.3s ease-in-out, top 0.3s ease-in-out', // Transición solo en right
+        transition: 'right 0.3s ease-in-out, left 0.3s ease-in-out, top 0.3s ease-in-out', // Transición en ambos lados
         right: '0', // Posición inicial en el borde derecho
       });
   
@@ -62,8 +62,8 @@ class FloatingButton {
       this.isDragging = true;
       this.hasMoved = false;
   
-      fabElement.style.transition = 'none';
-      fabElement.style.transform = '';
+      fabElement.style.transition = 'none'; // Deshabilitar transición al mover
+      fabElement.style.transform = ''; // Resetear cualquier transformación
   
       const rect = fabElement.getBoundingClientRect();
       this.offsetX = (e.type === "touchstart" ? e.touches[0].clientX : e.clientX) - rect.left;
@@ -99,7 +99,7 @@ class FloatingButton {
       this.isDragging = false;
   
       setTimeout(() => {
-        fabElement.style.transition = 'right 0.3s ease-in-out, top 0.3s ease-in-out';
+        fabElement.style.transition = 'right 0.3s ease-in-out, left 0.3s ease-in-out, top 0.3s ease-in-out'; // Rehabilitar la transición
         this.snapToEdge(fabElement, fabBtn);
       }, 10);
     }
@@ -116,11 +116,13 @@ class FloatingButton {
       const isCloserToLeft = centerX < windowWidth / 2;
   
       if (isCloserToLeft) {
+        // Mover el botón al borde izquierdo
         fabElement.style.right = ''; // Deshabilitar right
         fabElement.style.left = '0px'; // Pegarse al lado izquierdo
         fabElement.classList.remove('right');
         fabBtn.style.transform = 'rotate(0deg)';
       } else {
+        // Mover el botón al borde derecho
         fabElement.style.left = ''; // Deshabilitar left
         fabElement.style.right = '0px'; // Pegarse al lado derecho
         fabElement.classList.add('right');
